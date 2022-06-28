@@ -1,6 +1,6 @@
 {
   "name": "react-authentication-popup",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A React Component where you can receive a token from external authentication by popup, supports Authorization Code and Implicit Grant flows.",
   "keywords": [
     "auth",
@@ -46,7 +46,9 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "module": "dist/react-authentication-popup.esm.js",
-  "files": [ "dist" ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "lint": "dts lint",
     "prepare": "dts build"
