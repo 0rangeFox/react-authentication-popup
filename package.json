@@ -1,6 +1,6 @@
 {
   "name": "react-authentication-popup",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A React Component where you can receive a token from external authentication by popup, supports Authorization Code and Implicit Grant flows.",
   "keywords": [
     "auth",
