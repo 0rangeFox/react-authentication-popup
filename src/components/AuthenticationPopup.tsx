@@ -1,4 +1,4 @@
-import React, { FunctionComponent, ReactNode } from 'react';
+import React, { FunctionComponent, PropsWithChildren } from 'react';
 import PopupWindow from '../helpers/PopupWindow';
 import { toQuery } from '../utils';
 import {
@@ -6,24 +6,23 @@ import {
   ResponseDataType,
   ResponseLocationType,
 } from '../interfaces';
+import ResponseData from '../interfaces/ResponseData';
 
 interface AuthenticationPopupProps {
   id?: string;
   authorizationUrl: string;
   responseType: ResponseLocationType;
-  onSuccess?: (data: Record<string, any>) => void;
+  onSuccess?: (data: ResponseData) => void;
   onFailure?: (err: Error) => void;
   buttonText?: string;
-  children?: React.ReactNode;
   popupWidth?: number;
   popupHeight?: number;
   className?: string;
-  render?: (props: {
+  render?: (props: PropsWithChildren<{
     className?: string;
     buttonText?: string;
-    children: ReactNode;
     onClick(): void;
-  }) => JSX.Element;
+  }>) => JSX.Element;
   isCrossOrigin?: boolean;
   onRequest?: () => void;
   clientId?: string;
@@ -33,10 +32,35 @@ interface AuthenticationPopupProps {
   extraParams?: Record<string, any>;
 }
 
-const AuthenticationPopup: FunctionComponent<AuthenticationPopupProps> = (
-  props: AuthenticationPopupProps
+const AuthenticationPopup: FunctionComponent<PropsWithChildren<AuthenticationPopupProps>> = (
+  props: PropsWithChildren<AuthenticationPopupProps>
 ) => {
   let popup: PopupWindow;
+
+  const onRequest = (): void => {
+    const { onRequest } = props;
+    return onRequest && onRequest();
+  };
+
+  const onFailure = (error: Error): void => {
+    const { onFailure } = props;
+    return onFailure && onFailure(error);
+  };
+
+  const onSuccess = (data: ResponseData): void => {
+    const { responseType, onSuccess, isCrossOrigin } = props;
+    const responseKey: string = ResponseDataType[responseType];
+
+    // Cross-origin requests will already handle this, let's just return the data
+    if (!isCrossOrigin && (responseKey !in (data as PayloadData))) {
+      console.error('received data', data);
+      return onFailure(
+        new Error(`'${responseKey}' not found in received data`)
+      );
+    }
+
+    return onSuccess && onSuccess(data);
+  };
 
   const onBtnClick = (): void => {
     const {
@@ -85,31 +109,6 @@ const AuthenticationPopup: FunctionComponent<AuthenticationPopupProps> = (
     onRequest();
 
     if (popup) popup.then(onSuccess)?.catch(onFailure);
-  };
-
-  const onRequest = (): void => {
-    const { onRequest } = props;
-    return onRequest && onRequest();
-  };
-
-  const onSuccess = (data: PayloadData): void => {
-    const { responseType, onSuccess, isCrossOrigin } = props;
-    const responseKey: string = ResponseDataType[responseType];
-
-    // Cross-origin requests will already handle this, let's just return the data
-    if (!isCrossOrigin && !data[responseKey]) {
-      console.error('received data', data);
-      return onFailure(
-        new Error(`'${responseKey}' not found in received data`)
-      );
-    }
-
-    return onSuccess && onSuccess(data);
-  };
-
-  const onFailure = (error: Error): void => {
-    const { onFailure } = props;
-    return onFailure && onFailure(error);
   };
 
   const { id, className, buttonText, children, render } = props;
